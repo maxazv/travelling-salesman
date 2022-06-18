@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import math
-import operator
 
 
 class TSP:
@@ -186,7 +185,6 @@ class TSP:
             cnt += 1
 
         min_key = min(curr_routes, key=lambda t : t[0])
-        #min_key = min(curr_routes, key=curr_routes.get)
         return min_key
 
     
