@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import math
-from bisect import bisect_left, insort
 
 
 class TSP:
@@ -27,11 +26,6 @@ class TSP:
         self.adj_matrix = self.adj_matrix + self.adj_matrix.T - np.diag(self.adj_matrix.diagonal())
 
 
-    def get_neighbour_nodes(self, node):
-        # return list with j values where (node, j) was not zero and not node
-        return [i for i in range(self.size) if self.adj_matrix[node][i] and i != node]
-
-
     def successor_states(self, route):
         # simple way of generating successor nodes
         succs = []
@@ -47,6 +41,25 @@ class TSP:
     def calc_route_cost(self, route):
         # sum over values of arr[i][i+1] for i in route. (i, i+1) is an edge from route[i] to route[i+1]
         return sum([self.adj_matrix[route[i]][route[i+1]] for i in range(len(route)-1)])
+
+
+    def swap_dist_cost(self, route, i, j):
+        p_1 = min(i, j)     # smallest index of swapped elems
+        p_2 = max(i, j)     # biggest index of swapped elems
+
+        dist = []
+
+        #print(p_2, route[p_2])
+        dist.append(self.adj_matrix[route[p_2-1]][route[p_2]])
+        if p_2 < self.size-1:
+            dist.append(self.adj_matrix[route[p_2]][route[p_2+1]])
+
+        if p_2-1 != p_1:    # otherwise we calculate this distance twice
+            dist.append(self.adj_matrix[route[p_1]][route[p_1+1]])
+
+        dist.append(self.adj_matrix[route[p_1-1]][route[p_1]])    # always greater than 0
+
+        return sum(dist)
 
 
     def gen_rand_route(self):
@@ -102,10 +115,17 @@ class TSP:
             rand_scc = route[:]
             i, j = random.sample(range(len(route) - 1), 2)
             i, j = i+1, j+1
+
+            # used a few lines ahead
+            dist_aft = self.swap_dist_cost(rand_scc, i, j)
+
             rand_scc[i], rand_scc[j] = rand_scc[j], rand_scc[i]
 
-            # compute error (very expensive)
-            d_err = self.calc_route_cost(rand_scc) - route_cost
+
+            # compute error efficiently by only checking swap distances
+            dist_bef = self.swap_dist_cost(rand_scc, i, j)
+            new_cost = route_cost + dist_aft - dist_bef
+            d_err = -(new_cost - route_cost) 
 
             # accept node if better or if worse by some probability
             if d_err < 0 or math.exp(-d_err/temp) > random.random():
@@ -115,7 +135,6 @@ class TSP:
         return route, route_cost
 
 
-    # <TO DO>
     def compute_loc_beam_search(self, k, lb_its=100):
         # generate start positions with random permutation of cities (random initial routes)
         curr_routes = {}
@@ -162,7 +181,6 @@ class TSP:
             cnt += 1
 
         min_key = min(curr_routes, key=curr_routes.get)
-
         return curr_routes[min_key]
 
     
