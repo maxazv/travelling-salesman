@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import math
+from bisect import bisect_left, insort
+
 
 class TSP:
     def __init__(self, size):
@@ -52,29 +54,38 @@ class TSP:
         return rand_route, self.calc_route_cost(rand_route)
 
 
-    def compute_hill_climb(self, variant='naive'):
-        # generate array with unique random integers (random initial route)
-        route, route_cost = self.gen_rand_route()
-        print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
+    def compute_hill_climb(self, variant='naive', hc_iter=1):
+        best_route = None
+        best_route_cost = float("inf")
 
-        min_route = route_cost
-        moved = True
+        for i in range(hc_iter):
+            # generate array with unique random integers (random initial route)
+            route, route_cost = self.gen_rand_route()
+            print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
 
-        while(moved):
-            moved = False
-            # generate successor nodes
-            successors = self.successor_states(route)
+            min_route = route_cost
+            moved = True
 
-            # find successor node with minimum route cost
-            for s in successors:
-                route_cost = self.calc_route_cost(s)
-                if route_cost < min_route:
-                    route = s
-                    min_route = route_cost
+            while moved:
+                moved = False
+                # generate successor nodes
+                successors = self.successor_states(route)
 
-                    moved = True
+                # find successor node with minimum route cost
+                for s in successors:
+                    route_cost = self.calc_route_cost(s)
+                    if route_cost < min_route:
+                        route = s
+                        min_route = route_cost
 
-        return route, min_route
+                        moved = True
+
+            # compute best route among multiple hill climb attempts (random-restart hill climbing)
+            if route_cost < best_route_cost:
+                best_route = route
+                best_route_cost = route_cost
+
+        return best_route, best_route_cost
 
 
     def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.075):
@@ -105,35 +116,54 @@ class TSP:
 
 
     # <TO DO>
-    def compute_loc_beam_search(self, k):
-        # generate array with unique random integers (random initial route)
-        routes = []
-        route_costs = []
+    def compute_loc_beam_search(self, k, lb_its=100):
+        # generate start positions with random permutation of cities (random initial routes)
+        curr_routes = {}
         for i in range(k):
             route, route_cost = self.gen_rand_route()
-            routes.append(route)
-            route_costs.append(route_cost)
+            print(f'(LB)[Init]\t Route {i} is route with cost \t{route_cost}')
 
-        print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
+            curr_routes[str(route)] = (route_cost, route)
 
-        min_routes = route_costs
         moved = True
+        cnt = 0
+        while moved and cnt < lb_its:
 
-        while(moved):
             moved = False
-            # generate successor nodes
-            successors = self.successor_states(route)
+            k_best_routes = {}
+            curr_routes = [i[1] for i in list(curr_routes.values())]
 
-            # find successor node with minimum route cost
-            for s in successors:
-                route_cost = self.calc_route_cost(s)
-                if route_cost < min_route:
-                    route = s
-                    min_route = route_cost
+            # find k best successor nodes
+            for route in curr_routes:
+                # generate successor nodes
+                successors = self.successor_states(route)
 
-                    moved = True
+                # find successor node with minimum route cost
+                for s in successors:
+                    route_cost = self.calc_route_cost(s)
 
-        return route, min_route
+                    # no element in k best successors yet
+                    if len(list(k_best_routes.keys())) < 1:
+                        k_best_routes[str(route)] = (route_cost, route)
+                        continue
+                    
+                    # check if current node is better than the highest val of the best
+                    max_key = max(k_best_routes, key=k_best_routes.get)
+                    if route_cost < k_best_routes[max_key][0]:
+                        k_best_routes[str(route)] = (route_cost, route)
+
+                        # only the k best successors
+                        if len(k_best_routes) > k:
+                            del k_best_routes[max_key]
+
+                        moved = True
+            
+            curr_routes = k_best_routes
+            cnt += 1
+
+        min_key = min(curr_routes, key=curr_routes.get)
+
+        return curr_routes[min_key]
 
     
     def compute_gen_algorithm(self):

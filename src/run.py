@@ -19,7 +19,7 @@ def genetic_alg_avg(its):
 
 
 # travelling salesman problem initialisation
-tsp = TSP(15)
+tsp = TSP(6)
 tsp.init_table(500, 0.001)
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
 
@@ -29,4 +29,8 @@ print(f'(HC)[Final]\t Route is hc_opt with cost \t{hc_cost}\n')
 
 # simulated annealing solution
 sa_opt, sa_cost = tsp.compute_sim_annealing()
-print(f'(SA)[Final]\t Route is sa_opt with cost \t{sa_cost}')
+print(f'(SA)[Final]\t Route is sa_opt with cost \t{sa_cost}\n')
+
+# local beam search solution
+lb_cost, lb_opt = tsp.compute_loc_beam_search(3)
+print(f'(LB)[Final]\t Route is sa_opt with cost \t{lb_cost}')
