@@ -8,58 +8,38 @@ tsp.init_table(1000, 0.001)
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
 
 
-def hill_climb_avg(its):
+def algorithm_avg(its, alg=0):
     avg_cost, avg_time = 0, 0
     for i in range(its):
         # measure time for each iteration
-        start = time.time()
-        _, hc_cost = tsp.compute_hill_climb()
-        end = time.time()
+        if alg == 0:
+            start = time.time()
+            _, c_cost = tsp.compute_hill_climb()
+            end = time.time()
+        
+        elif alg == 1:
+            start = time.time()
+            _, c_cost = tsp.compute_sim_annealing()
+            end = time.time()
+
+        else:
+            start = time.time()
+            c_cost = tsp.compute_loc_beam_search(4, lb_its=40)
+            end = time.time()
+            c_cost = c_cost[0]
 
         avg_time += (end - start)
-        avg_cost += hc_cost
+        avg_cost += c_cost
 
     return avg_cost/its, avg_time/its
-
-
-def sim_annealing_avg(its):
-    avg_cost, avg_time = 0, 0
-    for i in range(its):
-        # measure time for each iteration
-        start = time.time()
-        _, sa_cost = tsp.compute_sim_annealing()
-        end = time.time()
-
-        avg_time += (end - start)
-        avg_cost += sa_cost
-    
-    return avg_cost/its, avg_time/its
-
-
-def loc_beam_avg(its):
-    avg_cost, avg_time = 0, 0
-    for i in range(its):
-        # measure time for each iteration
-        start = time.time()
-        lb_ret = tsp.compute_loc_beam_search(4, lb_its=50)
-        end = time.time()
-
-        avg_time += (end - start)
-        avg_cost += lb_ret[0]
-
-    return avg_cost/its, avg_time/its
-
-
-def genetic_alg_avg(its):
-    pass
 
 
 
 # algorithm measurements
 msr_iters = 20
-print(hill_climb_avg(msr_iters))
-print(sim_annealing_avg(msr_iters))
-print(loc_beam_avg(msr_iters))
+print(algorithm_avg(msr_iters, alg=0))
+print(algorithm_avg(msr_iters, alg=1))
+print(algorithm_avg(msr_iters, alg=2))
 
 '''
 # hill climbing solution
