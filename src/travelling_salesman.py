@@ -152,14 +152,12 @@ class TSP:
 
     def compute_loc_beam_search(self, k, lb_its=100):
         # generate start positions with random permutation of cities (random initial routes)
-        curr_routes = {}
-        curr_routes = []    # ii
+        curr_routes = []
         for i in range(k):
             route, route_cost = self.gen_rand_route()
             print(f'(LB)[Init]\t Route {i} is route with cost \t{route_cost}')
 
-            #curr_routes[str(route)] = (route_cost, route)
-            curr_routes.append((route_cost, route)) # ii
+            curr_routes.append((route_cost, route))
 
         moved = True
         cnt = 0
