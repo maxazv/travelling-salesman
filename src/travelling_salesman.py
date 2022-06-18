@@ -26,6 +26,10 @@ class TSP:
         self.adj_matrix = self.adj_matrix + self.adj_matrix.T - np.diag(self.adj_matrix.diagonal())
 
 
+    def tsp_plot(self):
+        pass
+
+
     def successor_states(self, route, dist_old):
         # simple way of generating successor nodes
         succs = []
@@ -88,7 +92,7 @@ class TSP:
         for i in range(hc_iter):
             # generate array with unique random integers (random initial route)
             route, route_cost = self.gen_rand_route()
-            print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
+            #print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
 
             min_route = route_cost
             moved = True
@@ -116,7 +120,7 @@ class TSP:
 
     def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.075):
         route, route_cost = self.gen_rand_route()
-        print(f'(SA)[Init]\t Route is route with cost \t{route_cost}')
+        #print(f'(SA)[Init]\t Route is route with cost \t{route_cost}')
 
         temp = init_temp    # starting temperature
 
@@ -154,7 +158,7 @@ class TSP:
         curr_routes = []
         for i in range(k):
             route, route_cost = self.gen_rand_route()
-            print(f'(LB)[Init]\t Route {i} is route with cost \t{route_cost}')
+            #print(f'(LB)[Init]\t Route {i} is route with cost \t{route_cost}')
 
             curr_routes.append((route_cost, route))
 
@@ -162,7 +166,7 @@ class TSP:
         cnt = 0
         while moved and cnt < lb_its:
 
-            moved = False
+            moved = True
             k_best_routes = []
             routes_arr = [i[1] for i in curr_routes]
 
