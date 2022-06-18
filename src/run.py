@@ -19,7 +19,7 @@ def genetic_alg_avg(its):
 
 
 # travelling salesman problem initialisation
-tsp = TSP(15)
+tsp = TSP(5)
 tsp.init_table(500, 0.001)
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
 

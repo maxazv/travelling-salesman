@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+import operator
 
 
 class TSP:
@@ -152,52 +153,43 @@ class TSP:
     def compute_loc_beam_search(self, k, lb_its=100):
         # generate start positions with random permutation of cities (random initial routes)
         curr_routes = {}
+        curr_routes = []    # ii
         for i in range(k):
             route, route_cost = self.gen_rand_route()
             print(f'(LB)[Init]\t Route {i} is route with cost \t{route_cost}')
 
-            curr_routes[str(route)] = (route_cost, route)
+            #curr_routes[str(route)] = (route_cost, route)
+            curr_routes.append((route_cost, route)) # ii
 
         moved = True
         cnt = 0
         while moved and cnt < lb_its:
 
             moved = False
-            k_best_routes = {}
-            routes_arr = [i[1] for i in list(curr_routes.values())]
+            k_best_routes = []
+            routes_arr = [i[1] for i in curr_routes]
 
             # find k best successor nodes
-            for route in routes_arr:
+            for i, route in enumerate(routes_arr):
                 # generate successor nodes
-                successors, succ_costs = self.successor_states(route, curr_routes[str(route)][0])
+                successors, succ_costs = self.successor_states(route, curr_routes[i][0])   # ii
 
                 # find successor node with minimum route cost
                 for i, s in enumerate(successors):
-                    # <TODO: Change to be efficient with updates successor method>
-                    route_cost = self.calc_route_cost(s)
-                    #route_cost = succ_costs[i]
-
-                    # no element in k best successors yet
-                    if len(list(k_best_routes.keys())) < 1:
-                        k_best_routes[str(route)] = (route_cost, route)
-                        continue
+                    #route_cost = self.calc_route_cost(s)
+                    route_cost = succ_costs[i]
                     
                     # check if current node is better than the highest val of the best
-                    max_key = max(k_best_routes, key=k_best_routes.get)
-                    if route_cost < k_best_routes[max_key][0]:
-                        k_best_routes[str(route)] = (route_cost, route)
-
-                        # only the k best successors
-                        if len(k_best_routes) > k:
-                            del k_best_routes[max_key]
-
-                        moved = True
+                    k_best_routes.append((route_cost, s))
+                    if len(k_best_routes) > k:
+                        k_best_routes.remove(max(k_best_routes))
             
-            curr_routes = k_best_routes
+            curr_routes = k_best_routes[:]
             cnt += 1
 
-        min_key = min(curr_routes, key=curr_routes.get)
-        return curr_routes[min_key]
+        min_key = min(curr_routes, key=lambda t : t[0])
+        #min_key = min(curr_routes, key=curr_routes.get)
+        return min_key
 
     
     def compute_gen_algorithm(self):
