@@ -26,16 +26,31 @@ class TSP:
         self.adj_matrix = self.adj_matrix + self.adj_matrix.T - np.diag(self.adj_matrix.diagonal())
 
 
-    def successor_states(self, route):
+    def successor_states(self, route, dist_old):
         # simple way of generating successor nodes
         succs = []
-        for i in range(len(route)):
-            for j in range(i+1, len(route)):
+        dist_new = []
+        for i in range(0, len(route)-2):
+            for j in range(i+1, len(route)-1):
                 swap = route[:]     # pass by value
-                swap[i], swap[j] = route[j], route[i]
-                succs.append(swap)
+                s_i, s_j = i+1, j+1
 
-        return succs
+                dist_aft = self.swap_dist_cost(swap, s_i, s_j)
+
+                # swap nodes
+                swap[s_i], swap[s_j] = route[s_j], route[s_i]
+
+                dist_bef = self.swap_dist_cost(swap, s_i, s_j)
+                new_cost = dist_old - dist_aft + dist_bef
+                d_err = new_cost - dist_old
+
+                test = self.calc_route_cost(swap)
+                #print("A", test, dist_old - dist_aft + dist_bef)
+
+                succs.append(swap)
+                dist_new.append(new_cost)
+
+        return succs, dist_new
 
 
     def calc_route_cost(self, route):
@@ -49,7 +64,6 @@ class TSP:
 
         dist = []
 
-        #print(p_2, route[p_2])
         dist.append(self.adj_matrix[route[p_2-1]][route[p_2]])
         if p_2 < self.size-1:
             dist.append(self.adj_matrix[route[p_2]][route[p_2+1]])
@@ -82,21 +96,20 @@ class TSP:
             while moved:
                 moved = False
                 # generate successor nodes
-                successors = self.successor_states(route)
+                successors, succ_costs = self.successor_states(route, min_route)
 
                 # find successor node with minimum route cost
-                for s in successors:
-                    route_cost = self.calc_route_cost(s)
-                    if route_cost < min_route:
+                for i, s in enumerate(successors):
+                    if succ_costs[i] < min_route:
                         route = s
-                        min_route = route_cost
+                        min_route = succ_costs[i]
 
                         moved = True
 
             # compute best route among multiple hill climb attempts (random-restart hill climbing)
-            if route_cost < best_route_cost:
+            if min_route < best_route_cost:
                 best_route = route
-                best_route_cost = route_cost
+                best_route_cost = min_route
 
         return best_route, best_route_cost
 
@@ -125,7 +138,8 @@ class TSP:
             # compute error efficiently by only checking swap distances
             dist_bef = self.swap_dist_cost(rand_scc, i, j)
             new_cost = route_cost + dist_aft - dist_bef
-            d_err = -(new_cost - route_cost) 
+            d_err = -(new_cost - route_cost)
+            #d_err_bad = self.calc_route_cost(rand_scc) - route_cost 
 
             # accept node if better or if worse by some probability
             if d_err < 0 or math.exp(-d_err/temp) > random.random():
@@ -150,16 +164,18 @@ class TSP:
 
             moved = False
             k_best_routes = {}
-            curr_routes = [i[1] for i in list(curr_routes.values())]
+            routes_arr = [i[1] for i in list(curr_routes.values())]
 
             # find k best successor nodes
-            for route in curr_routes:
+            for route in routes_arr:
                 # generate successor nodes
-                successors = self.successor_states(route)
+                successors, succ_costs = self.successor_states(route, curr_routes[str(route)][0])
 
                 # find successor node with minimum route cost
-                for s in successors:
+                for i, s in enumerate(successors):
+                    # <TODO: Change to be efficient with updates successor method>
                     route_cost = self.calc_route_cost(s)
+                    #route_cost = succ_costs[i]
 
                     # no element in k best successors yet
                     if len(list(k_best_routes.keys())) < 1:
