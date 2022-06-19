@@ -1,15 +1,28 @@
 import numpy as np
 import random
 import math
+from matplotlib import pyplot as plt
 
 
 class TSP:
-    def __init__(self, size):
+    def __init__(self, size, max_val):
         self.size = size
-        self.adj_matrix = None
+        self.points = np.random.rand(self.size, 2) * max_val
+        self.adj_matrix = np.zeros(shape=(self.size, self.size))
+
+    
+    def calc_points_dist(self):
+        for i in range(self.size):
+            p_1 = self.points[i]
+            for j in range(i+1, self.size):
+                p_2 = self.points[j]
+                dist = math.sqrt(math.pow((p_1[0] - p_2[0]), 2) + math.pow((p_1[1] - p_2[1]), 2))
+
+                self.adj_matrix[i][j] = dist
+                self.adj_matrix[j][i] = dist
 
 
-    def init_table(self, max_value, null_freq):
+    def init_rand_table(self, max_value, null_freq):
         # create a random matrix with random edge weights
         self.adj_matrix = np.random.randint(low=1, high=max_value, size=(self.size, self.size))
         
@@ -26,8 +39,21 @@ class TSP:
         self.adj_matrix = self.adj_matrix + self.adj_matrix.T - np.diag(self.adj_matrix.diagonal())
 
 
-    def tsp_plot(self):
-        pass
+    def tsp_plot(self, order=None):
+        pnt_x, pnt_y = [], []
+
+        if order is None:
+            pnt_x = self.points[:, 0]
+            pnt_y = self.points[:, 1]
+        
+        else:
+            for i in order:
+                pnt_x.append(self.points[i][0])
+                pnt_y.append(self.points[i][1])
+
+        plt.scatter(pnt_x, pnt_y)
+        plt.plot(pnt_x, pnt_y, color='red')
+        plt.show()
 
 
     def successor_states(self, route, dist_old):
