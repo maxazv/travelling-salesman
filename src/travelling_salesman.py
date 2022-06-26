@@ -102,7 +102,12 @@ class TSP:
             min_route_cost = route_cost
             moved = True
 
+            # cnt = 0
+            # msr_x = [cnt]
+            # msr_y = [min_route_cost]
             while moved:
+                #cnt += 1
+
                 moved = False
                 # generate successor nodes
                 successors = self.successor_states(route, min_route_cost)   # O(n^2)
@@ -111,45 +116,63 @@ class TSP:
                 if s_cost < min_route_cost: moved = True
                 min_route_cost, route = s_cost, s
 
+                # msr_x.append(cnt)
+                # msr_y.append(min_route_cost)
+
             # compute best route among multiple hill climb attempts (random-restart hill climbing)
             if min_route_cost < best_route_cost:
                 best_route = route
                 best_route_cost = min_route_cost
 
-        return best_route, best_route_cost
+        return best_route, best_route_cost#, msr_x, msr_y
+
+
+    def swap_points(self, route, route_cost):
+        rand_scc = route[:]
+        i, j = random.sample(range(len(route) - 1), 2)  # choose two random indices two swap
+        i, j = i+1, j+1
+
+        # used a few lines ahead
+        dist_aft = self.swap_dist_cost(rand_scc, i, j)
+
+        rand_scc[i], rand_scc[j] = rand_scc[j], rand_scc[i]
+
+        # compute error efficiently by only checking swap distances
+        dist_bef = self.swap_dist_cost(rand_scc, i, j)
+        new_cost = route_cost - dist_aft + dist_bef
+        d_err = new_cost - route_cost
+
+        return rand_scc, new_cost
+
 
     # O(its)
-    def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.00075):    # default: 500, 0.07, 0.075
+    def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.0075):    # default: 500, 0.07, 0.075
         route, route_cost = self.gen_rand_route()
 
         temp = init_temp    # starting temperature
 
+        # cnt = 0
+        # msr_x = [cnt]
+        # msr_y = [route_cost]
         while temp > thr:
+            #cnt += 1
+
             # schedule
             temp = temp - d_t   # different schedules: a/math.log(1+t), a*temp : for some constant a, counter t
 
             # generate random successor node by swapping some i, j > 1, and calculate its value
-            rand_scc = route[:]
-            i, j = random.sample(range(len(route) - 1), 2)  # choose two random indices two swap
-            i, j = i+1, j+1
-
-            # used a few lines ahead
-            dist_aft = self.swap_dist_cost(rand_scc, i, j)
-
-            rand_scc[i], rand_scc[j] = rand_scc[j], rand_scc[i]
-
-
-            # compute error efficiently by only checking swap distances
-            dist_bef = self.swap_dist_cost(rand_scc, i, j)
-            new_cost = route_cost - dist_aft + dist_bef
+            rand_scc, new_cost = self.swap_points(route, route_cost)
             d_err = new_cost - route_cost
 
             # accept node if better or if worse by some probability
             if d_err < 0 or math.exp(-d_err/temp) > random.random():
                 route = rand_scc
-                route_cost = d_err + route_cost
+                route_cost = new_cost
 
-        return route, route_cost
+            # msr_x.append(cnt)
+            # msr_y.append(route_cost)
+
+        return route, route_cost#, msr_x, msr_y
 
 
     # O(k*n^2 * its)
@@ -160,6 +183,9 @@ class TSP:
             route, route_cost = self.gen_rand_route()
             curr_routes.append((route_cost, route))
 
+        # tmp = lb_its
+        # msr_x = [0]
+        # msr_y = [curr_routes[0][0]]
         while lb_its > 0:   # O(k*n^2)
             all_succs = []
 
@@ -175,10 +201,118 @@ class TSP:
                 curr_routes.append(heapq.heappop(all_succs))
 
             curr_routes = curr_routes[-k:]
+
+            # msr_x.append(tmp-lb_its)
+            # msr_y.append(curr_routes[0][0])
             lb_its -= 1
 
-        return curr_routes[0]
+        return curr_routes[0]#, msr_x, msr_y
 
     
-    def compute_gen_algorithm(self):
-        route, route_cost = self.gen_rand_route()
+    def crossover(self, indiv_1, indiv_2):
+        crossover_pnt = random.randint(1, self.size-1)
+
+        offspring_1 = indiv_1[:crossover_pnt]
+        seen = set(offspring_1)
+
+        for genome in indiv_2:      # no duplicate points are to be visited
+            if genome not in seen:
+                offspring_1.append(genome)
+
+        return offspring_1
+
+
+    def mutate(self, indiv, swap_rot_prob):
+        mutated = indiv
+
+        if random.random() > swap_rot_prob:
+            # swap two indices like in simulated annealing (swap mutation)
+            cost = self.calc_route_cost(indiv)
+            mutated, cost = self.swap_points(indiv, cost)
+
+        else:
+            # rotate a sequence of our genome (rotation mutation)
+            i, j = random.sample(range(len(mutated) - 1), 2)
+            i, j = i+1, j+1
+
+            start = min(i, j)
+            end = max(i, j)
+
+            # calculate cost in sections
+            bef_mut_cost = self.calc_route_cost(mutated[:start])
+
+            rot_seq = mutated[start:end][::-1]
+            mut_cost = self.calc_route_cost(rot_seq)
+
+            aft_mut_cost = self.calc_route_cost(mutated[end:])
+
+            cost = bef_mut_cost + mut_cost + aft_mut_cost
+
+            mutated[start:end] = mutated[start:end][::-1]
+
+        return mutated, cost
+
+    
+    def compute_gen_algorithm(self, pop_size, mutation_prob=.05, swap_rot_prob=.5, ga_its=5000):
+        curr_pop = []
+        total_fitness = 0
+        for i in range(pop_size):
+            indiv, cost = self.gen_rand_route()
+            curr_pop.append((cost, indiv))
+
+            total_fitness += cost
+
+        while ga_its > 0:   # O(pop_size * x)
+            next_pop = []
+
+            # selection method with probability of selection being increasing function of fitness
+            # based on `biased roulette wheel`
+            inv_prop = [total_fitness/cost for (cost, _) in curr_pop]
+            inv_prop_sum = sum(inv_prop)
+            norm_inv_prop = [inv_p/inv_prop_sum for inv_p in inv_prop]
+
+            accum_prop = []
+            accum_total = 0
+            for prop in norm_inv_prop:
+                accum_total += prop
+                accum_prop.append(accum_total)
+
+            # select `pop_size` amount of parents
+            parents = []
+            for _ in range(pop_size):
+                rand_select = random.random()
+
+                for i, val in enumerate(accum_prop):
+                    if val >= rand_select:
+                        parents.append(curr_pop[i][1])
+
+            # crossover between parents and mutation
+            for i in range(pop_size-2):
+                offspring_a = self.crossover(parents[i], parents[i+1])
+                offspring_b = self.crossover(parents[i+1], parents[i])
+
+                # introduce mutation into the next population inspired by annealing
+                mutated_a, mutated_b = offspring_a, offspring_b
+                cost_a, cost_b = 0, 0
+                if random.random() < mutation_prob:
+                    mutated_a, cost_a = self.mutate(offspring_a, swap_rot_prob)
+                else:
+                    cost_a = self.calc_route_cost(mutated_a)
+
+                if random.random() < mutation_prob:
+                    mutated_b, cost_b = self.mutate(offspring_b, swap_rot_prob)
+                else:
+                    cost_b = self.calc_route_cost(mutated_b)
+
+                curr_pop.append((cost_a, mutated_a))
+                curr_pop.append((cost_b, mutated_b))
+                
+            # select best individuals of total population (including parents)
+            heapq.heapify(curr_pop)
+            for _ in range(pop_size):
+                next_pop.append(heapq.heappop(curr_pop))
+
+            curr_pop = next_pop
+            ga_its -= 1
+
+        return curr_pop[0]
