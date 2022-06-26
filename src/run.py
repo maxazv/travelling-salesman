@@ -79,7 +79,7 @@ print(f'(SA)[Final]\t Route is sa_opt with cost \t{sa_cost}\n')
 
 # local beam search solution
 s_lb = time.time()
-lb_ret = tsp.compute_loc_beam_search(8, lb_its=100)
+lb_ret = tsp.compute_loc_beam_search(10, lb_its=500)
 e_lb = time.time()
 print(f'(LB)[Final]\t Route is lb_opt with cost \t{lb_ret[0]}')
 

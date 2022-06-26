@@ -90,6 +90,7 @@ class TSP:
         return rand_route, self.calc_route_cost(rand_route)
 
 
+    # O(n^2 * its)
     def compute_hill_climb(self, variant='naive', hc_iter=1):
         best_route = None
         best_route_cost = float("inf")
@@ -97,7 +98,6 @@ class TSP:
         for i in range(hc_iter):
             # generate array with unique random integers (random initial route)
             route, route_cost = self.gen_rand_route()
-            #print(f'(HC)[Init]\t Route is route with cost \t{route_cost}')
 
             min_route_cost = route_cost
             moved = True
@@ -118,10 +118,9 @@ class TSP:
 
         return best_route, best_route_cost
 
-
+    # O(its)
     def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.00075):    # default: 500, 0.07, 0.075
         route, route_cost = self.gen_rand_route()
-        #print(f'(SA)[Init]\t Route is route with cost \t{route_cost}')
 
         temp = init_temp    # starting temperature
 
@@ -153,6 +152,7 @@ class TSP:
         return route, route_cost
 
 
+    # O(k*n^2 * its)
     def compute_loc_beam_search(self, k, lb_its=100):
         # generate start positions with random permutation of cities (random initial routes)
         curr_routes = []
