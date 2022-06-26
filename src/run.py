@@ -141,9 +141,3 @@ plt.xlabel("Iterations")
 plt.ylabel("Path Cost")
 plt.show()
 '''
-
-# genetic algorithm solution
-s_ga = time.time()
-ga_ret = tsp.compute_gen_algorithm(20)
-e_ga = time.time()
-print(f'(GA)[Final]\t Route is ga_ret[1] with cost \t{ga_ret[0]}')
