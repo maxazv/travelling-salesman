@@ -23,21 +23,9 @@ class TSP:
                 self.adj_matrix[j][i] = dist
 
 
-    def init_rand_table(self, max_value, null_freq):
-        # create a random matrix with random edge weights
-        self.adj_matrix = np.random.randint(low=1, high=max_value, size=(self.size, self.size))
-        
-        # increase weights of random connections extremely
-        inf_val = max_value*(10**4)
-        mask = np.random.choice([0, 1], size=self.adj_matrix.shape, p=((1 - null_freq), null_freq)).astype(bool)
-        zeros = np.random.rand(self.size, self.size)*inf_val
-        self.adj_matrix[mask] = zeros[mask]
-
-        # remove connections to oneself
-        np.fill_diagonal(self.adj_matrix, 0)
-
-        # symmetrize matrix
-        self.adj_matrix = self.adj_matrix + self.adj_matrix.T - np.diag(self.adj_matrix.diagonal())
+    def gen_rand_route(self):
+        rand_route = list(np.random.permutation(self.size))
+        return rand_route, self.calc_route_cost(rand_route)
 
 
     def successor_states(self, route, dist_old):    # O(n^2)
@@ -63,10 +51,11 @@ class TSP:
 
 
     def calc_route_cost(self, route):   # O(n)
-        # sum over values of arr[i][i+1] for i in route. (i, i+1) is an edge from route[i] to route[i+1]
+        # sum over edge weights (route[i], route[i+1]) in ajdacency matrix
         return sum([self.adj_matrix[route[i]][route[i+1]] for i in range(len(route)-1)])
 
 
+    # only calculate the cost of the swapped elements
     def swap_dist_cost(self, route, i, j):  # O(1)
         p_1 = min(i, j)     # smallest index of swapped elems
         p_2 = max(i, j)     # biggest index of swapped elems
@@ -83,12 +72,7 @@ class TSP:
         dist += self.adj_matrix[route[p_1-1]][route[p_1]]    # always greater than 0
 
         return dist
-
-
-    def gen_rand_route(self):
-        rand_route = list(np.random.permutation(self.size))
-        return rand_route, self.calc_route_cost(rand_route)
-
+        
 
     # O(n^2 * its)
     def compute_hill_climb(self, variant='naive', hc_iter=1):
@@ -127,6 +111,7 @@ class TSP:
         return best_route, best_route_cost#, msr_x, msr_y
 
 
+    # swap points in route and return new route with new cost
     def swap_points(self, route, route_cost):
         rand_scc = route[:]
         i, j = random.sample(range(len(route) - 1), 2)  # choose two random indices two swap
@@ -209,20 +194,20 @@ class TSP:
         return curr_routes[0]#, msr_x, msr_y
 
     
-    def crossover(self, indiv_1, indiv_2):
+    def crossover(self, indiv_1, indiv_2):  # O(n)
         crossover_pnt = random.randint(1, self.size-1)
 
         offspring_1 = indiv_1[:crossover_pnt]
-        seen = set(offspring_1)
+        seen = set(offspring_1) # O(n)
 
-        for genome in indiv_2:      # no duplicate points are to be visited
-            if genome not in seen:
+        for genome in indiv_2:      # no duplicate points should be visited more than once
+            if genome not in seen:  # O(1) as it is a set
                 offspring_1.append(genome)
 
         return offspring_1
 
 
-    def mutate(self, indiv, swap_rot_prob):
+    def mutate(self, indiv, swap_rot_prob): # O(n)
         mutated = indiv
 
         if random.random() > swap_rot_prob:
@@ -241,14 +226,14 @@ class TSP:
             # calculate cost in sections
             bef_mut_cost = self.calc_route_cost(mutated[:start])
 
-            rot_seq = mutated[start:end][::-1]
-            mut_cost = self.calc_route_cost(rot_seq)
+            rot_seq = mutated[start:end][::-1]  # rotated sequence
+            mut_cost = self.calc_route_cost(rot_seq)    # rotated sequence cost
 
             aft_mut_cost = self.calc_route_cost(mutated[end:])
 
-            cost = bef_mut_cost + mut_cost + aft_mut_cost
+            cost = bef_mut_cost + mut_cost + aft_mut_cost   # total cost of mutated individual
 
-            mutated[start:end] = mutated[start:end][::-1]
+            mutated[start:end] = mutated[start:end][::-1]   # apply rotated sequence
 
         return mutated, cost
 
@@ -267,19 +252,19 @@ class TSP:
 
             # selection method with probability of selection being increasing function of fitness
             # based on `biased roulette wheel`
-            inv_prop = [total_fitness/cost for (cost, _) in curr_pop]
+            inv_prop = [total_fitness/cost for (cost, _) in curr_pop]   # lower cost => higher fitness
             inv_prop_sum = sum(inv_prop)
-            norm_inv_prop = [inv_p/inv_prop_sum for inv_p in inv_prop]
+            norm_inv_prop = [inv_p/inv_prop_sum for inv_p in inv_prop]  # normalise values for sum to be 1
 
             accum_prop = []
             accum_total = 0
-            for prop in norm_inv_prop:
+            for prop in norm_inv_prop:          # likelihood of being picked "stacks up"
                 accum_total += prop
                 accum_prop.append(accum_total)
 
-            # select `pop_size` amount of parents
+            # select `pop_size//2` amount of parents
             parents = []
-            for _ in range(pop_size):
+            for _ in range(pop_size//2):
                 rand_select = random.random()
 
                 for i, val in enumerate(accum_prop):
@@ -294,7 +279,7 @@ class TSP:
                 # introduce mutation into the next population inspired by annealing
                 mutated_a, mutated_b = offspring_a, offspring_b
                 cost_a, cost_b = 0, 0
-                if random.random() < mutation_prob:
+                if random.random() < mutation_prob:     # only mutate by some probability
                     mutated_a, cost_a = self.mutate(offspring_a, swap_rot_prob)
                 else:
                     cost_a = self.calc_route_cost(mutated_a)

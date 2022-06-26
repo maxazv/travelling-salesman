@@ -6,7 +6,6 @@ from travelling_salesman import *
 num_pnts = 25
 tsp = TSP(num_pnts, 2200)
 tsp.calc_points_dist()
-#tsp.init_rand_table(1000, 0.001)
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
 
 
