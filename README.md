@@ -23,7 +23,8 @@
 
     2. or create a new TSP-Object and test the methods yourself <br>
    <code>
-    tsp_obj = TSP(num_cities, avg_dist_val) <br>
+    tsp_obj = TSP(num_cities, avg_dist_val)
+
     tsp_obj.calc_points_dist()
     </code>
 
@@ -31,6 +32,6 @@
 
 ## TODO's
 
-- [x] add algorithm variants
+- [ ] add algorithm variants
 - [ ] modify *main* file
 - [ ] add efficiency or comparison file
