@@ -2,7 +2,6 @@ import numpy as np
 import random
 import math
 import heapq
-from matplotlib import pyplot as plt
 
 
 class TSP:

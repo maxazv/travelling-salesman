@@ -1,5 +1,6 @@
-import time
 from travelling_salesman import *
+import time
+from matplotlib import pyplot as plt
 
 
 # travelling salesman problem initialisation
@@ -64,9 +65,9 @@ def tsp_plot(tsp, order=None):
 
 # algorithm measurements
 msr_iters = 20
-print(algorithm_avg(msr_iters, alg=0))
-print(algorithm_avg(msr_iters, alg=1))
-print(algorithm_avg(msr_iters, alg=2))
+#print(algorithm_avg(msr_iters, alg=0))
+#print(algorithm_avg(msr_iters, alg=1))
+#print(algorithm_avg(msr_iters, alg=2))
 print(algorithm_avg(msr_iters, alg=3))
 
 '''
