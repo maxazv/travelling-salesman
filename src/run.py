@@ -1,10 +1,10 @@
 from travelling_salesman import *
 import time
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 
 
 # travelling salesman problem initialisation
-num_pnts = 25
+num_pnts = 100
 tsp = TSP(num_pnts, 2200)
 tsp.calc_points_dist()
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
@@ -32,7 +32,7 @@ def algorithm_avg(its, alg=0):
 
         else:
             start = time.time()
-            c_cost = tsp.compute_gen_algorithm(20, ga_its=1000)
+            c_cost = tsp.compute_gen_algorithm(40, ga_its=2000) # 20, 1000
             end = time.time()
             c_cost = c_cost[0]
 
@@ -64,34 +64,34 @@ def tsp_plot(tsp, order=None):
 
 
 # algorithm measurements
-msr_iters = 20
-#print(algorithm_avg(msr_iters, alg=0))
-#print(algorithm_avg(msr_iters, alg=1))
-#print(algorithm_avg(msr_iters, alg=2))
-print(algorithm_avg(msr_iters, alg=3))
+msr_iters = 1
+print(algorithm_avg(msr_iters, alg=0))
+# print(algorithm_avg(msr_iters, alg=1))
+# print(algorithm_avg(msr_iters, alg=2))
+# print(algorithm_avg(msr_iters, alg=3))
 
 '''
 # hill climbing solution
 s_hc = time.time()
-hc_opt, hc_cost, hc_x, hc_y = tsp.compute_hill_climb()
+hc_opt, hc_cost = tsp.compute_hill_climb()
 e_hc = time.time()
 print(f'(HC)[Final]\t Route is hc_opt with cost \t{hc_cost}\n')
 
 # simulated annealing solution
 s_sa = time.time()
-sa_opt, sa_cost, sa_x, sa_y = tsp.compute_sim_annealing()
+sa_opt, sa_cost= tsp.compute_sim_annealing()
 e_sa = time.time()
 print(f'(SA)[Final]\t Route is sa_opt with cost \t{sa_cost}\n')
 
 # local beam search solution
 s_lb = time.time()
-lb_ret, lb_x, lb_y = tsp.compute_loc_beam_search(4, lb_its=100)
+lb_ret = tsp.compute_loc_beam_search(4, lb_its=150)
 e_lb = time.time()
 print(f'(LB)[Final]\t Route is lb_opt with cost \t{lb_ret[0]}')
 
 # genetic algorithm search solution
 s_ga = time.time()
-ga_ret = tsp.compute_gen_algorithm(20)
+ga_ret = tsp.compute_gen_algorithm(40, ga_its=2000)
 e_ga = time.time()
 print(f'(GA)[Final]\t Route is ga_ret[1] with cost \t{ga_ret[0]}')
 
@@ -121,6 +121,12 @@ plt.title(f'Local Beam Search for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {lb_cost}, time: {lb_time}s', ha="center")
 tsp_plot(tsp, lb_ret[1])
 
+ga_time = round(e_ga - s_ga, 4)
+ga_cost = round(ga_ret[0], 2)
+plt.title(f'Genetic Algorithm for {num_pnts} Points\n')
+plt.figtext(.5, .9, f'path cost: {ga_cost}, time: {ga_time}s', ha="center")
+tsp_plot(tsp, ga_ret[1])
+
 
 # iteration measure
 plt.title(f'Hill Climbing')
@@ -137,6 +143,12 @@ plt.show()
 
 plt.title(f'Local Beam Search')
 plt.plot(lb_x, lb_y, marker='|', markevery=15)
+plt.xlabel("Iterations")
+plt.ylabel("Path Cost")
+plt.show()
+
+plt.title(f'Genetic Algorithm')
+plt.plot(ga_x, ga_y, marker='|', markevery=100)
 plt.xlabel("Iterations")
 plt.ylabel("Path Cost")
 plt.show()

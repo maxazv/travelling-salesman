@@ -33,5 +33,5 @@
 ## TODO's
 
 - [ ] add algorithm variants
-- [ ] modify *main* file
+- [ ] modify *run* file
 - [ ] add efficiency or comparison file

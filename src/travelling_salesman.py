@@ -30,6 +30,7 @@ class TSP:
     def successor_states(self, route, dist_old):    # O(n^2)
         # simple way of generating successor nodes
         succs = []
+        
         for i in range(0, len(route)-2):        # O( (n^2-n)/2 - (n+1) ) or O(n^2)
             for j in range(i+1, len(route)-1):
                 swap = route[:]     # pass by value
@@ -45,7 +46,7 @@ class TSP:
 
                 succs.append((new_cost, swap))
 
-        heapq.heapify(succs)    # O(n)
+        heapq.heapify(succs)   # O(n)
         return succs
 
 
@@ -85,29 +86,23 @@ class TSP:
             min_route_cost = route_cost
             moved = True
 
-            # cnt = 0
-            # msr_x = [cnt]
-            # msr_y = [min_route_cost]
             while moved:
-                #cnt += 1
-
                 moved = False
                 # generate successor nodes
                 successors = self.successor_states(route, min_route_cost)   # O(n^2)
+
                 # find successor node with minimum route cost
                 s_cost, s = successors[0]
-                if s_cost < min_route_cost: moved = True
-                min_route_cost, route = s_cost, s
-
-                # msr_x.append(cnt)
-                # msr_y.append(min_route_cost)
+                if s_cost < min_route_cost: 
+                    moved = True
+                    min_route_cost, route = s_cost, s
 
             # compute best route among multiple hill climb attempts (random-restart hill climbing)
             if min_route_cost < best_route_cost:
                 best_route = route
                 best_route_cost = min_route_cost
 
-        return best_route, best_route_cost#, msr_x, msr_y
+        return best_route, best_route_cost
 
 
     # swap points in route and return new route with new cost
@@ -130,17 +125,11 @@ class TSP:
 
 
     # O(its)
-    def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.0075):    # default: 500, 0.07, 0.075
+    def compute_sim_annealing(self, init_temp=500, thr=0.07, d_t=0.005):    # default: 500, 0.07, 0.075
         route, route_cost = self.gen_rand_route()
-
         temp = init_temp    # starting temperature
 
-        # cnt = 0
-        # msr_x = [cnt]
-        # msr_y = [route_cost]
         while temp > thr:
-            #cnt += 1
-
             # schedule
             temp = temp - d_t   # different schedules: a/math.log(1+t), a*temp : for some constant a, counter t
 
@@ -153,10 +142,7 @@ class TSP:
                 route = rand_scc
                 route_cost = new_cost
 
-            # msr_x.append(cnt)
-            # msr_y.append(route_cost)
-
-        return route, route_cost#, msr_x, msr_y
+        return route, route_cost
 
 
     # O(k*n^2 * its)
@@ -167,9 +153,6 @@ class TSP:
             route, route_cost = self.gen_rand_route()
             curr_routes.append((route_cost, route))
 
-        # tmp = lb_its
-        # msr_x = [0]
-        # msr_y = [curr_routes[0][0]]
         while lb_its > 0:   # O(k*n^2)
             all_succs = []
 
@@ -177,7 +160,7 @@ class TSP:
             for (cost, route) in curr_routes:
                 # generate successor nodes
                 successors = self.successor_states(route, cost)             # O(n^2)
-                all_succs += [heapq.heappop(successors) for _ in range(k)]  # O(log(m)) = O(k*log(m)) for m heap size
+                all_succs += [heapq.heappop(successors) for _ in range(k)]  # O(k*log(m)) = O(log(m)) for m heap size
 
             # find successor node with minimum route cost with heap
             heapq.heapify(all_succs)    # O(k^2) but k is often small
@@ -186,11 +169,9 @@ class TSP:
 
             curr_routes = curr_routes[-k:]
 
-            # msr_x.append(tmp-lb_its)
-            # msr_y.append(curr_routes[0][0])
             lb_its -= 1
 
-        return curr_routes[0]#, msr_x, msr_y
+        return curr_routes[0]
 
     
     def crossover(self, indiv_1, indiv_2):  # O(n)
@@ -297,6 +278,7 @@ class TSP:
                 next_pop.append(heapq.heappop(curr_pop))
 
             curr_pop = next_pop
+
             ga_its -= 1
 
         return curr_pop[0]
