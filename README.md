@@ -11,17 +11,17 @@
 
 ## How to run this project
 
-1. clone this project
 
-2. install all dependencies
+1. install all dependencies
+2. clone this project
     * numpy
     * matplotlib
 
 3. run the project
-    1. Now run the project on the `travelling-salesman/src/` directory with 
+    1. Now run the project on the `travelling-salesman/src/` directory with
    `python3 run.py`
 
-    2. or create a new TSP-Object and test the methods yourself <br>
+    1. or create a new TSP-Object and test the methods yourself <br>
    <code>
     tsp_obj = TSP(num_cities, avg_dist_val)
 

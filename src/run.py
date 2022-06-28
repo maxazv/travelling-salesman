@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # travelling salesman problem initialisation
-num_pnts = 100
+num_pnts = 25
 tsp = TSP(num_pnts, 2200)
 tsp.calc_points_dist()
 #print(f'Adjacency Matrix:\n{tsp.adj_matrix}\n')
@@ -94,7 +94,6 @@ s_ga = time.time()
 ga_ret = tsp.compute_gen_algorithm(40, ga_its=2000)
 e_ga = time.time()
 print(f'(GA)[Final]\t Route is ga_ret[1] with cost \t{ga_ret[0]}')
-
 
 # plot data
 rand_route, rand_cost = tsp.gen_rand_route()
