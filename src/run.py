@@ -1,6 +1,5 @@
 from travelling_salesman import *
 import time
-import matplotlib.pyplot as plt
 
 
 # travelling salesman problem initialisation
@@ -42,26 +41,6 @@ def algorithm_avg(its, alg=0):
     return avg_cost/its, avg_time/its
 
 
-def tsp_plot(tsp, order=None):
-        pnt_x, pnt_y = [], []
-
-        if order is None:
-            pnt_x = tsp.points[:, 0]
-            pnt_y = tsp.points[:, 1]
-        
-        else:
-            for i in order:
-                pnt_x.append(tsp.points[i][0])
-                pnt_y.append(tsp.points[i][1])
-
-        plt.scatter(pnt_x, pnt_y)
-        plt.scatter(pnt_x[0], pnt_y[0], color='red')    # starting point
-        plt.plot(pnt_x, pnt_y, color='red')
-
-
-        plt.show()
-
-
 
 # algorithm measurements
 msr_iters = 1
@@ -100,31 +79,31 @@ rand_route, rand_cost = tsp.gen_rand_route()
 rand_cost = round(rand_cost, 2)
 plt.title(f'Random Route for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {rand_cost}, time: 0s', ha="center")
-tsp_plot(tsp, rand_route)
+tsp.plot_data(tsp, rand_route)
 
 hc_time = round(e_hc - s_hc, 4)
 hc_cost = round(hc_cost, 2)
 plt.title(f'Hill Climbing for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {hc_cost}, time: {hc_time}s', ha="center")
-tsp_plot(tsp, order=hc_opt)
+tsp.plot_data(tsp, order=hc_opt)
 
 sa_time = round(e_sa - s_sa, 4)
 sa_cost = round(sa_cost, 2)
 plt.title(f'Simulated Annealing for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {sa_cost}, time: {sa_time}s', ha="center")
-tsp_plot(tsp, order=sa_opt)
+tsp.plot_data(tsp, order=sa_opt)
 
 lb_time = round(e_lb - s_lb, 4)
 lb_cost = round(lb_ret[0], 2)
 plt.title(f'Local Beam Search for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {lb_cost}, time: {lb_time}s', ha="center")
-tsp_plot(tsp, lb_ret[1])
+tsp.plot_data(tsp, lb_ret[1])
 
 ga_time = round(e_ga - s_ga, 4)
 ga_cost = round(ga_ret[0], 2)
 plt.title(f'Genetic Algorithm for {num_pnts} Points\n')
 plt.figtext(.5, .9, f'path cost: {ga_cost}, time: {ga_time}s', ha="center")
-tsp_plot(tsp, ga_ret[1])
+tsp.plot_data(tsp, ga_ret[1])
 
 
 # iteration measure

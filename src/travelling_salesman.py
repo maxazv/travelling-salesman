@@ -2,6 +2,7 @@ import numpy as np
 import random
 import math
 import heapq
+import matplotlib.pyplot as plt
 
 
 class TSP:
@@ -20,6 +21,24 @@ class TSP:
 
                 self.adj_matrix[i][j] = dist
                 self.adj_matrix[j][i] = dist
+
+    def plot_route(self, order=None):
+        pnt_x, pnt_y = [], []
+
+        if order is None:
+            pnt_x = self.points[:, 0]
+            pnt_y = self.points[:, 1]
+        
+        else:
+            for i in order:
+                pnt_x.append(self.points[i][0])
+                pnt_y.append(self.points[i][1])
+
+        plt.scatter(pnt_x, pnt_y)
+        plt.scatter(pnt_x[0], pnt_y[0], color='red')    # starting point
+        plt.plot(pnt_x, pnt_y, color='red')
+
+        plt.show()
 
 
     def gen_rand_route(self):
